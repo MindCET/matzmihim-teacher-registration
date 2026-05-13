@@ -59,8 +59,11 @@ async function fetchAllAirtable() {
 // ── Bubble ────────────────────────────────────────────────────────────────────
 
 async function fetchAllBubble() {
-  // Returns Map: airtable_record_id → bubble user object
+  // Returns two Maps:
+  //   byAirtableId: airtable_record_id → bubble user
+  //   byEmail:      email              → bubble user
   const byAirtableId = new Map();
+  const byEmail      = new Map();
   let cursor = 0;
   const limit = 100;
 
@@ -79,9 +82,8 @@ async function fetchAllBubble() {
     const users = data.response?.results || [];
 
     for (const u of users) {
-      if (u.airtable_record_id) {
-        byAirtableId.set(u.airtable_record_id, u);
-      }
+      if (u.airtable_record_id) byAirtableId.set(u.airtable_record_id, u);
+      if (u.email)               byEmail.set(u.email.toLowerCase().trim(), u);
     }
 
     const remaining = data.response?.remaining ?? 0;
@@ -89,7 +91,7 @@ async function fetchAllBubble() {
     cursor += users.length;
   }
 
-  return byAirtableId;
+  return { byAirtableId, byEmail };
 }
 
 async function createBubbleUser(atRecord) {
@@ -165,13 +167,14 @@ function diffFields(atRecord, bubbleUser) {
 async function main() {
   console.log('── Airtable → Bubble sync starting ──');
 
-  const [atRecords, bubbleMap] = await Promise.all([
+  const [atRecords, { byAirtableId, byEmail }] = await Promise.all([
     fetchAllAirtable(),
     fetchAllBubble(),
   ]);
 
   console.log(`Airtable records: ${atRecords.length}`);
-  console.log(`Bubble users with airtable_record_id: ${bubbleMap.size}`);
+  console.log(`Bubble users with airtable_record_id: ${byAirtableId.size}`);
+  console.log(`Bubble users total (with email): ${byEmail.size}`);
 
   let created   = 0;
   let updated   = 0;
@@ -179,13 +182,14 @@ async function main() {
   let errors    = 0;
 
   for (const record of atRecords) {
-    const email = (record.fields['username'] || '').trim();
+    const email = (record.fields['username'] || '').toLowerCase().trim();
     if (!email) {
       console.warn(`  ⚠ Skipping record ${record.id} — no email`);
       continue;
     }
 
-    const bubbleUser = bubbleMap.get(record.id);
+    // Match by airtable_record_id first, fall back to email
+    const bubbleUser = byAirtableId.get(record.id) || byEmail.get(email) || null;
 
     try {
       if (!bubbleUser) {
@@ -193,10 +197,16 @@ async function main() {
         console.log(`  ✅ Created: ${email}`);
         created++;
       } else {
+        // Always include airtable_record_id in diff so existing users get it set
         const diff = diffFields(record, bubbleUser);
-        if (diff) {
-          await updateBubbleUser(bubbleUser._id, diff);
-          console.log(`  ✏️  Updated: ${email} — ${Object.keys(diff).join(', ')}`);
+        const needsIdUpdate = bubbleUser.airtable_record_id !== record.id;
+        const changes = needsIdUpdate
+          ? { ...(diff || {}), airtable_record_id: record.id }
+          : diff;
+
+        if (changes) {
+          await updateBubbleUser(bubbleUser._id, changes);
+          console.log(`  ✏️  Updated: ${email} — ${Object.keys(changes).join(', ')}`);
           updated++;
         } else {
           unchanged++;
