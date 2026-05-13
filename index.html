@@ -319,7 +319,6 @@
 <div class="card">
   <div class="logo-area">
     <img src="https://matzmichim.org.il/wp-content/uploads/2025/06/Artboard-3.png" alt="מצמיחים" class="brand-logo" />
-    <p>הרשמת מורים לתוכנית</p>
   </div>
 
   <!-- Registration Form -->
@@ -381,6 +380,27 @@
         <label for="manualSchool">בית ספר (הזנה ידנית)</label>
         <input type="text" id="manualSchool" placeholder="שם בית הספר" autocomplete="off" />
         <span class="err-msg" id="err-manualSchool">יש להזין שם בית ספר</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="grade">כיתה</label>
+      <select id="grade">
+        <option value="">בחר כיתה</option>
+        <option>א׳</option><option>ב׳</option><option>ג׳</option>
+        <option>ד׳</option><option>ה׳</option><option>ו׳</option>
+        <option>ז׳</option><option>ח׳</option><option>ט׳</option>
+        <option>י׳</option><option>י״א</option><option>י״ב</option>
+        <option value="אחר">אחר</option>
+      </select>
+      <span class="err-msg" id="err-grade">יש לבחור כיתה</span>
+    </div>
+
+    <div id="gradeOtherWrap" style="display:none">
+      <div class="field">
+        <label for="gradeOther">כיתה (הזנה חופשית)</label>
+        <input type="text" id="gradeOther" placeholder="פרט את הכיתה" autocomplete="off" />
+        <span class="err-msg" id="err-gradeOther">יש להזין כיתה</span>
       </div>
     </div>
 
@@ -548,6 +568,10 @@
   }
 
   // ─── Workshop checkbox ────────────────────────────────────
+  document.getElementById('grade').addEventListener('change', function () {
+    document.getElementById('gradeOtherWrap').style.display = this.value === 'אחר' ? 'block' : 'none';
+  });
+
   document.getElementById('inWorkshop').addEventListener('change', function () {
     document.getElementById('workshopFields').style.display = this.checked ? 'block' : 'none';
   });
@@ -588,6 +612,10 @@
         { id: 'city',   test: v => v.trim() !== '', errTarget: 'citySearch' },
         { id: 'school', test: v => v !== '' },
       ]),
+      { id: 'grade', test: v => v !== '' },
+      ...(document.getElementById('grade').value === 'אחר' ? [
+        { id: 'gradeOther', test: v => v.trim().length > 0 },
+      ] : []),
       ...(inWorkshop ? [
         { id: 'workshopName',   test: v => v.trim().length > 0 },
         { id: 'workshopLeader', test: v => v.trim().length > 0 },
@@ -633,6 +661,8 @@
     const inWorkshop     = document.getElementById('inWorkshop').checked;
     const workshopName   = inWorkshop ? document.getElementById('workshopName').value.trim() : '';
     const workshopLeader = inWorkshop ? document.getElementById('workshopLeader').value.trim() : '';
+    const gradeRaw = document.getElementById('grade').value;
+    const grade    = gradeRaw === 'אחר' ? document.getElementById('gradeOther').value.trim() : gradeRaw;
 
     try {
       // 1. Airtable
@@ -643,6 +673,7 @@
         'שם משפחה':         lastName,
         'יישוב בית ספר':    city,
         'בית ספר':          school,
+        'grade':             grade,
       };
       if (inWorkshop) {
         atFields['שם השתלמות']        = workshopName;
@@ -671,7 +702,7 @@
           'Authorization': `Bearer ${BUBBLE_TOKEN}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password: phone }),
+        body: JSON.stringify({ email, password: phone, classroom: grade }),
       }).then(r => {
         if (!r.ok) r.json().then(b => console.warn('Bubble warn:', r.status, b)).catch(() => console.warn('Bubble warn:', r.status));
       }).catch(e => console.warn('Bubble fetch error:', e));
