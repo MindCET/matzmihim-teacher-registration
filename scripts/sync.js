@@ -98,8 +98,8 @@ async function createBubbleUser(atRecord) {
     email:               (f['username'] || '').toLowerCase().trim(),
     password:            (f['טלפון']    || '').trim(),
     phone:               (f['טלפון']    || '').trim(),
-    first_name:          (f['שם פרטי']  || '').trim(),
-    last_name:           (f['שם משפחה'] || '').trim(),
+    'first name':        (f['שם פרטי']  || '').trim(),
+    'last name':         (f['שם משפחה'] || '').trim(),
     school:              (f['בית ספר']  || '').trim(),
     airtable_record_id:  atRecord.id,
   };
@@ -142,11 +142,11 @@ async function updateBubbleUser(bubbleId, changedFields) {
 function diffFields(atRecord, bubbleUser) {
   const f = atRecord.fields;
   const mapping = {
-    first_name: (f['שם פרטי']  || '').trim(),
-    last_name:  (f['שם משפחה'] || '').trim(),
-    phone:      (f['טלפון']    || '').trim(),
-    school:     (f['בית ספר']  || '').trim(),
-    email:      (f['username'] || '').toLowerCase().trim(),
+    'first name': (f['שם פרטי']  || '').trim(),
+    'last name':  (f['שם משפחה'] || '').trim(),
+    phone:        (f['טלפון']    || '').trim(),
+    school:       (f['בית ספר']  || '').trim(),
+    email:        (f['username'] || '').toLowerCase().trim(),
   };
 
   const changed = {};
