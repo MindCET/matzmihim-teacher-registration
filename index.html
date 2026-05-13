@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>מצמיחים — הרשמת מורים</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #1a2a3a;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .logo-area {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .logo-area h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1a3c6b;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-area p {
+      font-size: 0.95rem;
+      color: #6b7c8d;
+      margin-top: 0.3rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1.1rem;
+    }
+
+    .field label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #3a4f63;
+      margin-bottom: 0.35rem;
+    }
+
+    .field input,
+    .field select {
+      border: 1.5px solid #d0dae4;
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.95rem;
+      font-family: 'Heebo', sans-serif;
+      color: #1a2a3a;
+      background: #f8fafc;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+    }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7c8d' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: left 0.9rem center;
+      padding-left: 2.2rem;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: none;
+      border-color: #1a3c6b;
+      box-shadow: 0 0 0 3px rgba(26,60,107,0.1);
+      background: #fff;
+    }
+
+    .field input.error,
+    .field select.error {
+      border-color: #e74c3c;
+    }
+
+    .field .err-msg {
+      font-size: 0.78rem;
+      color: #e74c3c;
+      margin-top: 0.25rem;
+      display: none;
+    }
+
+    .field .err-msg.show { display: block; }
+
+    .field select:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Autocomplete */
+    .autocomplete-wrap {
+      position: relative;
+    }
+
+    .autocomplete-list {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      left: 0;
+      background: #fff;
+      border: 1.5px solid #1a3c6b;
+      border-radius: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      display: none;
+    }
+
+    .autocomplete-list.open { display: block; }
+
+    .autocomplete-list li {
+      list-style: none;
+      padding: 0.6rem 0.9rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: #1a2a3a;
+      transition: background 0.1s;
+    }
+
+    .autocomplete-list li:hover,
+    .autocomplete-list li.active {
+      background: #eef3fb;
+    }
+
+    .autocomplete-list li.no-results {
+      color: #9aabb8;
+      cursor: default;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.8rem;
+      background: #1a3c6b;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: 'Heebo', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-submit:hover:not(:disabled) { background: #14305a; }
+    .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .btn-submit.loading .spinner { display: inline-block; }
+    .btn-submit.loading .btn-text { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .global-error {
+      background: #fdecea;
+      color: #c0392b;
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      font-size: 0.88rem;
+      margin-top: 0.8rem;
+      display: none;
+    }
+
+    .global-error.show { display: block; }
+
+    /* Success screen */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 1rem 0;
+    }
+
+    .success-screen.show { display: block; }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: #e8f5e9;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.2rem;
+    }
+
+    .success-icon svg { width: 36px; height: 36px; }
+
+    .success-screen h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1a3c6b;
+      margin-bottom: 0.5rem;
+    }
+
+    .success-screen p {
+      color: #6b7c8d;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Workshop checkbox */
+    .checkbox-field { margin-bottom: 0.8rem; }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: #1a2a3a;
+      user-select: none;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #1a3c6b;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .workshop-fields {
+      background: #f4f7fb;
+      border-right: 3px solid #1a3c6b;
+      border-radius: 0 8px 8px 0;
+      padding: 0.9rem 1rem 0.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: #2563b0;
+      font-size: 0.82rem;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      font-family: inherit;
+    }
+    .link-btn:hover { color: #1a3c6b; }
+
+    #manualFields {
+      background: #fff8ec;
+      border-right: 3px solid #e67e22;
+      border-radius: 0 8px 8px 0;
+      padding: 0.9rem 1rem 0.2rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Bulk link */
+    .bulk-link {
+      text-align: center;
+      margin-top: 1.2rem;
+      font-size: 0.85rem;
+      color: #6b7c8d;
+    }
+
+    .bulk-link a {
+      color: #1a3c6b;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .bulk-link a:hover { text-decoration: underline; }
+
+    @media (max-width: 420px) {
+      .form-row { grid-template-columns: 1fr; }
+      .card { padding: 2rem 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo-area">
+    <h1>🌱 מצמיחים</h1>
+    <p>הרשמת מורים לתוכנית</p>
+  </div>
+
+  <!-- Registration Form -->
+  <form id="regForm" novalidate>
+    <div class="form-row">
+      <div class="field">
+        <label for="firstName">שם פרטי</label>
+        <input type="text" id="firstName" placeholder="ישראל" />
+        <span class="err-msg" id="err-firstName">שדה חובה</span>
+      </div>
+      <div class="field">
+        <label for="lastName">שם משפחה</label>
+        <input type="text" id="lastName" placeholder="ישראלי" />
+        <span class="err-msg" id="err-lastName">שדה חובה</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="email">אימייל</label>
+      <input type="email" id="email" placeholder="name@school.edu" />
+      <span class="err-msg" id="err-email">יש להזין כתובת אימייל תקינה</span>
+    </div>
+
+    <div class="field">
+      <label for="phone">טלפון</label>
+      <input type="tel" id="phone" placeholder="050-0000000" />
+      <span class="err-msg" id="err-phone">שדה חובה</span>
+    </div>
+
+    <div class="field">
+      <label for="citySearch">יישוב בית הספר</label>
+      <div class="autocomplete-wrap">
+        <input type="text" id="citySearch" placeholder="טוען נתונים..." autocomplete="off" disabled />
+        <input type="hidden" id="city" />
+        <ul class="autocomplete-list" id="cityList"></ul>
+      </div>
+      <span class="err-msg" id="err-city">יש לבחור יישוב מהרשימה</span>
+    </div>
+
+    <div class="field" id="schoolFieldWrap">
+      <label for="school">בית ספר</label>
+      <select id="school" disabled>
+        <option value="">בחר תחילה יישוב</option>
+      </select>
+      <span class="err-msg" id="err-school">יש לבחור בית ספר</span>
+    </div>
+
+    <div id="manualToggleWrap" style="text-align:left;margin-top:-0.5rem;margin-bottom:0.5rem">
+      <button type="button" id="manualToggleBtn" class="link-btn" onclick="toggleManual()">לא מצאתי את היישוב / בית הספר שלי ברשימה</button>
+    </div>
+
+    <div id="manualFields" style="display:none">
+      <div class="field">
+        <label for="manualCity">יישוב (הזנה ידנית)</label>
+        <input type="text" id="manualCity" placeholder="שם היישוב" autocomplete="off" />
+        <span class="err-msg" id="err-manualCity">יש להזין שם יישוב</span>
+      </div>
+      <div class="field">
+        <label for="manualSchool">בית ספר (הזנה ידנית)</label>
+        <input type="text" id="manualSchool" placeholder="שם בית הספר" autocomplete="off" />
+        <span class="err-msg" id="err-manualSchool">יש להזין שם בית ספר</span>
+      </div>
+    </div>
+
+    <div class="field checkbox-field">
+      <label class="checkbox-label">
+        <input type="checkbox" id="inWorkshop" />
+        <span>אני נרשם/ת במסגרת השתלמות</span>
+      </label>
+    </div>
+
+    <div class="workshop-fields" id="workshopFields" style="display:none">
+      <div class="field">
+        <label for="workshopName">שם ההשתלמות</label>
+        <input type="text" id="workshopName" placeholder="שם ההשתלמות" />
+        <span class="err-msg" id="err-workshopName">שדה חובה</span>
+      </div>
+      <div class="field">
+        <label for="workshopLeader">שם המנחה</label>
+        <input type="text" id="workshopLeader" placeholder="שם המנחה" />
+        <span class="err-msg" id="err-workshopLeader">שדה חובה</span>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit" id="submitBtn">
+      <span class="btn-text">הרשמה</span>
+      <span class="spinner"></span>
+    </button>
+
+    <div class="global-error" id="globalError"></div>
+  </form>
+
+  <div class="bulk-link">
+    <a href="bulk.html">הרשמה מרובה (למנחים ומנהלים) ←</a>
+  </div>
+
+  <!-- Success Screen -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <h2>ברוכים הבאים למצמיחים!</h2>
+    <p id="successMsg">ההרשמה הושלמה בהצלחה.<br/>פרטיך נשמרו במערכת.</p>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+  const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';
+  const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+  const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';
+
+  // ─── Load schools data ────────────────────────────────────
+  let allSchools = [];
+  let allCities  = [];
+
+  async function loadSchools() {
+    try {
+      const res  = await fetch(GOV_API);
+      const data = await res.json();
+      allSchools = data.result.records;
+
+      const cityMap = {};
+      allSchools.forEach(r => {
+        const name = (r['SETL_NAME'] || '').trim();
+        if (name) cityMap[name] = true;
+      });
+      allCities = Object.keys(cityMap).sort((a, b) => a.localeCompare(b, 'he'));
+
+      document.getElementById('citySearch').placeholder = 'הקלד שם יישוב...';
+      document.getElementById('citySearch').disabled = false;
+    } catch (e) {
+      document.getElementById('citySearch').placeholder = 'שגיאה בטעינת נתונים';
+      console.error('Failed to load schools:', e);
+    }
+  }
+
+  // ─── City autocomplete ────────────────────────────────────
+  const citySearchEl = document.getElementById('citySearch');
+  const cityHiddenEl = document.getElementById('city');
+  const cityListEl   = document.getElementById('cityList');
+
+  let activeIdx = -1;
+
+  function renderCityList(items) {
+    cityListEl.innerHTML = '';
+    activeIdx = -1;
+    if (!items.length) {
+      cityListEl.innerHTML = '<li class="no-results">לא נמצאו תוצאות</li>';
+      cityListEl.classList.add('open');
+      return;
+    }
+    items.slice(0, 50).forEach((city, i) => {
+      const li = document.createElement('li');
+      li.textContent = city;
+      li.dataset.idx = i;
+      li.addEventListener('mousedown', () => selectCity(city));
+      cityListEl.appendChild(li);
+    });
+    cityListEl.classList.add('open');
+  }
+
+  function selectCity(city) {
+    citySearchEl.value = city;
+    cityHiddenEl.value = city;
+    cityListEl.classList.remove('open');
+    citySearchEl.classList.remove('error');
+    document.getElementById('err-city').classList.remove('show');
+    populateSchools(city);
+  }
+
+  citySearchEl.addEventListener('input', function () {
+    const q = this.value.trim();
+    cityHiddenEl.value = '';
+    populateSchools('');
+    if (!q) { cityListEl.classList.remove('open'); return; }
+    const filtered = allCities.filter(c => c.includes(q));
+    renderCityList(filtered);
+  });
+
+  citySearchEl.addEventListener('keydown', function (e) {
+    const items = cityListEl.querySelectorAll('li:not(.no-results)');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, items.length - 1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIdx >= 0) selectCity(items[activeIdx].textContent);
+      return;
+    } else if (e.key === 'Escape') {
+      cityListEl.classList.remove('open'); return;
+    }
+    items.forEach((li, i) => li.classList.toggle('active', i === activeIdx));
+    if (activeIdx >= 0) items[activeIdx].scrollIntoView({ block: 'nearest' });
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.autocomplete-wrap')) cityListEl.classList.remove('open');
+  });
+
+  // ─── Populate schools dropdown ────────────────────────────
+  function populateSchools(city) {
+    const schoolEl = document.getElementById('school');
+    schoolEl.innerHTML = '<option value="">— בחר בית ספר —</option>';
+    if (!city) { schoolEl.disabled = true; return; }
+
+    const filtered = allSchools
+      .filter(r => (r['SETL_NAME'] || '').trim() === city)
+      .map(r => (r['NAME'] || '').trim())
+      .filter(Boolean);
+
+    const unique = [...new Set(filtered)].sort((a, b) => a.localeCompare(b, 'he'));
+    unique.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = s;
+      schoolEl.appendChild(opt);
+    });
+    schoolEl.disabled = false;
+  }
+
+  // ─── Workshop checkbox ────────────────────────────────────
+  document.getElementById('inWorkshop').addEventListener('change', function () {
+    document.getElementById('workshopFields').style.display = this.checked ? 'block' : 'none';
+  });
+
+  let manualMode = false;
+  function toggleManual() {
+    manualMode = !manualMode;
+    document.getElementById('manualFields').style.display = manualMode ? 'block' : 'none';
+    // hide/show the list-based fields
+    document.querySelector('.autocomplete-wrap').style.display = manualMode ? 'none' : '';
+    document.getElementById('schoolFieldWrap').style.display  = manualMode ? 'none' : '';
+    document.getElementById('manualToggleBtn').textContent = manualMode
+      ? 'חזרה לבחירה מהרשימה'
+      : 'לא מצאתי את היישוב / בית הספר שלי ברשימה';
+    // clear any lingering errors
+    ['citySearch','school','manualCity','manualSchool'].forEach(id => {
+      document.getElementById(id)?.classList.remove('error');
+    });
+    ['err-city','err-school','err-manualCity','err-manualSchool'].forEach(id => {
+      document.getElementById(id)?.classList.remove('show');
+    });
+  }
+
+  // ─── Validation ───────────────────────────────────────────
+  function validate() {
+    let ok = true;
+    const inWorkshop = document.getElementById('inWorkshop').checked;
+
+    const fields = [
+      { id: 'firstName', test: v => v.trim().length > 0 },
+      { id: 'lastName',  test: v => v.trim().length > 0 },
+      { id: 'email',     test: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) },
+      { id: 'phone',     test: v => v.trim().length > 0 },
+      ...(manualMode ? [
+        { id: 'manualCity',   test: v => v.trim().length > 0 },
+        { id: 'manualSchool', test: v => v.trim().length > 0 },
+      ] : [
+        { id: 'city',   test: v => v.trim() !== '', errTarget: 'citySearch' },
+        { id: 'school', test: v => v !== '' },
+      ]),
+      ...(inWorkshop ? [
+        { id: 'workshopName',   test: v => v.trim().length > 0 },
+        { id: 'workshopLeader', test: v => v.trim().length > 0 },
+      ] : []),
+    ];
+
+    fields.forEach(({ id, test, errTarget }) => {
+      const el      = document.getElementById(id);
+      const highlight = document.getElementById(errTarget || id);
+      const err     = document.getElementById('err-' + id);
+      const val     = el.value;
+      if (!test(val)) {
+        highlight.classList.add('error');
+        err.classList.add('show');
+        ok = false;
+      } else {
+        highlight.classList.remove('error');
+        err.classList.remove('show');
+      }
+    });
+
+    return ok;
+  }
+
+  // ─── Submit ───────────────────────────────────────────────
+  document.getElementById('regForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    if (!validate()) return;
+
+    const btn = document.getElementById('submitBtn');
+    const globalError = document.getElementById('globalError');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    globalError.classList.remove('show');
+
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+    const email     = document.getElementById('email').value.trim();
+    const phone     = document.getElementById('phone').value.trim();
+    const city   = manualMode ? document.getElementById('manualCity').value.trim()   : document.getElementById('city').value;
+    const school = manualMode ? document.getElementById('manualSchool').value.trim() : document.getElementById('school').value;
+    const inWorkshop     = document.getElementById('inWorkshop').checked;
+    const workshopName   = inWorkshop ? document.getElementById('workshopName').value.trim() : '';
+    const workshopLeader = inWorkshop ? document.getElementById('workshopLeader').value.trim() : '';
+
+    try {
+      // 1. Airtable
+      const atFields = {
+        'username':          email,
+        'טלפון':             phone,
+        'שם פרטי':          firstName,
+        'שם משפחה':         lastName,
+        'יישוב בית ספר':    city,
+        'בית ספר':          school,
+      };
+      if (inWorkshop) {
+        atFields['השתלמות'] = workshopName;
+        atFields['מנחה']    = workshopLeader;
+      }
+
+      const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fields: atFields }),
+      });
+
+      if (!atRes.ok) {
+        const errBody = await atRes.json().catch(() => ({}));
+        console.error('Airtable error:', atRes.status, errBody);
+        throw new Error('Airtable ' + atRes.status + ': ' + (errBody.error?.message || JSON.stringify(errBody)));
+      }
+
+      // 2. Bubble — non-fatal
+      fetch(BUBBLE_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${BUBBLE_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password: phone }),
+      }).then(r => {
+        if (!r.ok) r.json().then(b => console.warn('Bubble warn:', r.status, b)).catch(() => console.warn('Bubble warn:', r.status));
+      }).catch(e => console.warn('Bubble fetch error:', e));
+
+      // 3. EmailJS (if configured)
+      if (EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY') {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          to_email:   email,
+          first_name: firstName,
+          last_name:  lastName,
+        }).catch(e => console.warn('EmailJS warn:', e));
+      }
+
+      // 4. Show success
+      document.getElementById('regForm').style.display = 'none';
+      document.getElementById('successMsg').innerHTML =
+        `ההרשמה הושלמה בהצלחה, ${firstName}!<br/>פרטיך נשמרו במערכת.`;
+      document.getElementById('successScreen').classList.add('show');
+
+    } catch (err) {
+      console.error('Submit error:', err);
+      globalError.textContent = 'שגיאה: ' + err.message;
+      globalError.classList.add('show');
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  });
+
+  // ─── Init ─────────────────────────────────────────────────
+  loadSchools();
+</script>
+</body>
+</html>

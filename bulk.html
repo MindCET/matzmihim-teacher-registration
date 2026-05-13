@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>מצמיחים — הרשמה מרובה</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      color: #1a2a3a;
+    }
+
+    .page-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .header h1 { font-size: 1.5rem; font-weight: 700; color: #1a3c6b; }
+    .header p  { font-size: 0.9rem; color: #6b7c8d; margin-top: 0.15rem; }
+
+    .back-link {
+      font-size: 0.88rem;
+      color: #1a3c6b;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    /* Shared settings panel */
+    .panel {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      padding: 1.4rem 1.6rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1a3c6b;
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1.5px solid #e8eef5;
+    }
+
+    .shared-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr auto;
+      gap: 0.8rem;
+      align-items: end;
+    }
+
+    .field { display: flex; flex-direction: column; }
+    .field label { font-size: 0.8rem; font-weight: 500; color: #3a4f63; margin-bottom: 0.3rem; }
+
+    .field input,
+    .field select {
+      border: 1.5px solid #d0dae4;
+      border-radius: 7px;
+      padding: 0.55rem 0.8rem;
+      font-size: 0.9rem;
+      font-family: 'Heebo', sans-serif;
+      color: #1a2a3a;
+      background: #f8fafc;
+      transition: border-color 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+    }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7c8d' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: left 0.8rem center;
+      padding-left: 2rem;
+    }
+
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: #1a3c6b;
+      background: #fff;
+    }
+
+    .field select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Autocomplete */
+    .autocomplete-wrap { position: relative; }
+
+    .autocomplete-list {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0; left: 0;
+      background: #fff;
+      border: 1.5px solid #1a3c6b;
+      border-radius: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 200;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      display: none;
+    }
+    .autocomplete-list.open { display: block; }
+    .autocomplete-list li {
+      list-style: none;
+      padding: 0.5rem 0.8rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #1a2a3a;
+    }
+    .autocomplete-list li:hover, .autocomplete-list li.active { background: #eef3fb; }
+    .autocomplete-list li.no-results { color: #9aabb8; cursor: default; }
+
+    /* Apply button */
+    .btn-apply {
+      padding: 0.56rem 1.2rem;
+      background: #1a3c6b;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 0.88rem;
+      font-family: 'Heebo', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .btn-apply:hover { background: #14305a; }
+    .link-btn {
+      background: none; border: none; color: #2563b0;
+      font-size: 0.82rem; cursor: pointer; padding: 0;
+      text-decoration: underline; font-family: inherit;
+    }
+    .link-btn:hover { color: #1a3c6b; }
+
+    /* Table */
+    .table-panel {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      overflow: hidden;
+      margin-bottom: 1.4rem;
+    }
+
+    .table-scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    thead th {
+      background: #1a3c6b;
+      color: #fff;
+      padding: 0.65rem 0.7rem;
+      text-align: right;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    thead th:last-child { width: 40px; }
+
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody tr:hover { background: #eef3fb; }
+
+    tbody td {
+      padding: 0.35rem 0.4rem;
+      border-bottom: 1px solid #e8eef5;
+      vertical-align: top;
+    }
+
+    tbody td input, tbody td select {
+      width: 100%;
+      border: 1px solid #d0dae4;
+      border-radius: 5px;
+      padding: 0.42rem 0.6rem;
+      font-size: 0.85rem;
+      font-family: 'Heebo', sans-serif;
+      color: #1a2a3a;
+      background: transparent;
+    }
+    tbody td input:focus, tbody td select:focus {
+      outline: none;
+      border-color: #1a3c6b;
+      background: #fff;
+    }
+    tbody td input.row-error { border-color: #e74c3c; background: #fff5f5; }
+    tbody td select { appearance: none; -webkit-appearance: none; }
+    tbody td select:disabled { opacity: 0.4; }
+
+    .row-city-wrap { position: relative; }
+
+    .btn-del {
+      background: none;
+      border: none;
+      color: #c0392b;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .btn-del:hover { background: #fdecea; }
+
+    /* Row status */
+    tr.row-ok   td:first-child { border-right: 3px solid #27ae60; }
+    tr.row-fail td:first-child { border-right: 3px solid #e74c3c; }
+    tr.row-sending td { opacity: 0.6; }
+
+    /* Bottom bar */
+    .bottom-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-add-row {
+      background: none;
+      border: 1.5px dashed #1a3c6b;
+      color: #1a3c6b;
+      border-radius: 7px;
+      padding: 0.5rem 1rem;
+      font-size: 0.88rem;
+      font-family: 'Heebo', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-add-row:hover { background: #eef3fb; }
+
+    .btn-submit-all {
+      padding: 0.65rem 1.8rem;
+      background: #1a3c6b;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 0.95rem;
+      font-family: 'Heebo', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-submit-all:hover:not(:disabled) { background: #14305a; }
+    .btn-submit-all:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .spinner-sm {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .sending .spinner-sm { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Progress */
+    .progress-wrap {
+      flex: 1;
+      min-width: 200px;
+      display: none;
+    }
+    .progress-wrap.show { display: block; }
+    .progress-label { font-size: 0.82rem; color: #6b7c8d; margin-bottom: 0.3rem; }
+    .progress-bar-bg {
+      height: 8px;
+      background: #e0e7ef;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #1a3c6b;
+      border-radius: 4px;
+      transition: width 0.3s;
+      width: 0%;
+    }
+
+    /* Summary */
+    .summary {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      padding: 1.2rem 1.6rem;
+      display: none;
+    }
+    .summary.show { display: block; }
+    .summary h3 { font-size: 1rem; font-weight: 700; color: #1a3c6b; margin-bottom: 0.8rem; }
+    .summary-row { font-size: 0.88rem; margin-bottom: 0.3rem; }
+    .summary-row.ok   { color: #27ae60; }
+    .summary-row.fail { color: #c0392b; }
+
+    /* Paste hint */
+    .paste-hint {
+      font-size: 0.8rem;
+      color: #6b7c8d;
+      text-align: center;
+      padding: 0.5rem;
+      border-top: 1px dashed #d0dae4;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 14px;
+      padding: 1.8rem 2rem;
+      width: 100%; max-width: 560px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      direction: rtl;
+    }
+
+    .modal h2 { font-size: 1.1rem; font-weight: 700; color: #1a3c6b; margin-bottom: 0.4rem; }
+    .modal p  { font-size: 0.85rem; color: #6b7c8d; margin-bottom: 1.2rem; }
+
+    .map-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0.5rem 0.8rem;
+      align-items: center;
+      margin-bottom: 1.4rem;
+    }
+
+    .map-grid .col-label { font-size: 0.82rem; color: #3a4f63; font-weight: 500; }
+    .map-grid .arrow { color: #9aabb8; font-size: 0.9rem; text-align: center; }
+
+    .map-grid select {
+      border: 1.5px solid #d0dae4;
+      border-radius: 7px;
+      padding: 0.45rem 0.7rem;
+      font-size: 0.85rem;
+      font-family: 'Heebo', sans-serif;
+      appearance: none; -webkit-appearance: none;
+    }
+    .map-grid select:focus { outline: none; border-color: #1a3c6b; }
+
+    .modal-preview {
+      background: #f8fafc;
+      border-radius: 7px;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.78rem;
+      color: #6b7c8d;
+      margin-bottom: 1.2rem;
+      max-height: 80px;
+      overflow: hidden;
+    }
+
+    .modal-actions { display: flex; gap: 0.8rem; justify-content: flex-start; }
+
+    .btn-modal-ok {
+      padding: 0.6rem 1.5rem;
+      background: #1a3c6b; color: #fff;
+      border: none; border-radius: 7px;
+      font-family: 'Heebo', sans-serif; font-size: 0.9rem; font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-modal-ok:hover { background: #14305a; }
+
+    .btn-modal-cancel {
+      padding: 0.6rem 1.2rem;
+      background: none; color: #6b7c8d;
+      border: 1.5px solid #d0dae4; border-radius: 7px;
+      font-family: 'Heebo', sans-serif; font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .btn-modal-cancel:hover { background: #f0f4f8; }
+
+    @media (max-width: 700px) {
+      .shared-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="header">
+    <div>
+      <h1>🌱 מצמיחים — הרשמה מרובה</h1>
+      <p>הוספת מורים מרובים על-ידי מנחה או מנהל</p>
+    </div>
+    <a class="back-link" href="index.html">← חזרה לטופס הרשמה בודדת</a>
+  </div>
+
+  <!-- Shared settings -->
+  <div class="panel">
+    <div class="panel-title">הגדרות משותפות לכל הרשומות</div>
+    <div class="shared-grid">
+      <div class="field">
+        <label>יישוב בית הספר</label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="sharedCitySearch" placeholder="טוען..." autocomplete="off" disabled />
+          <input type="hidden" id="sharedCity" />
+          <ul class="autocomplete-list" id="sharedCityList"></ul>
+        </div>
+      </div>
+      <div class="field" id="sharedSchoolWrap">
+        <label>בית ספר</label>
+        <select id="sharedSchool" disabled>
+          <option value="">בחר יישוב תחילה</option>
+        </select>
+      </div>
+      <div class="field" id="sharedManualFields" style="display:none;grid-column:1/-1">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+          <div>
+            <label>יישוב (הזנה ידנית)</label>
+            <input type="text" id="sharedManualCity" placeholder="שם היישוב" autocomplete="off" />
+          </div>
+          <div>
+            <label>בית ספר (הזנה ידנית)</label>
+            <input type="text" id="sharedManualSchool" placeholder="שם בית הספר" autocomplete="off" />
+          </div>
+        </div>
+      </div>
+      <div style="grid-column:1/-1;margin-top:-0.25rem">
+        <button type="button" id="sharedManualBtn" class="link-btn" onclick="toggleSharedManual()">לא מצאתי את היישוב / בית הספר ברשימה</button>
+      </div>
+      <div class="field">
+        <label>שם השתלמות (אופציונלי)</label>
+        <input type="text" id="sharedWorkshop" placeholder="שם ההשתלמות" />
+      </div>
+      <div class="field">
+        <label>שם מנחה (אופציונלי)</label>
+        <input type="text" id="sharedLeader" placeholder="שם המנחה" />
+      </div>
+      <button class="btn-apply" id="btnApply" onclick="applyShared()">החל על כולם</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-panel">
+    <div class="table-scroll">
+      <table id="bulkTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>שם פרטי *</th>
+            <th>שם משפחה *</th>
+            <th>אימייל *</th>
+            <th>טלפון *</th>
+            <th>יישוב</th>
+            <th>בית ספר</th>
+            <th>השתלמות</th>
+            <th>מנחה</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="bulkBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <button class="btn-add-row" onclick="addRow()">+ הוסף שורה</button>
+    <button class="btn-submit-all" id="btnSubmitAll" onclick="submitAll()">
+      <span class="spinner-sm"></span>
+      <span class="submit-text">רשום את כולם</span>
+    </button>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label" id="progressLabel"></div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paste hint -->
+  <p class="paste-hint">💡 העתק שורות מ-Excel והדבק לתוך הטבלה (Ctrl+V) — יופיע חלון מיפוי עמודות</p>
+
+  <!-- Summary -->
+  <div class="summary" id="summary">
+    <h3>סיכום שליחה</h3>
+    <div id="summaryBody"></div>
+  </div>
+
+</div>
+
+<!-- Column mapping modal -->
+<div class="modal-overlay" id="mapModal">
+  <div class="modal">
+    <h2>מיפוי עמודות מ-Excel</h2>
+    <p>התאם כל עמודה מהקובץ שלך לשדה המתאים במערכת</p>
+    <div class="modal-preview" id="mapPreview"></div>
+    <div class="map-grid" id="mapGrid"></div>
+    <div class="modal-actions">
+      <button class="btn-modal-ok" onclick="applyPasteMapping()">ייבא נתונים</button>
+      <button class="btn-modal-cancel" onclick="closeMapModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+  let allSchools = [];
+  let allCities  = [];
+  let rowCount   = 0;
+
+  // ─── Load schools ─────────────────────────────────────────
+  async function loadSchools() {
+    try {
+      const data = await fetch(GOV_API).then(r => r.json());
+      allSchools = data.result.records;
+      const cityMap = {};
+      allSchools.forEach(r => { const n = (r.SETL_NAME || '').trim(); if (n) cityMap[n] = true; });
+      allCities = Object.keys(cityMap).sort((a, b) => a.localeCompare(b, 'he'));
+      document.getElementById('sharedCitySearch').placeholder = 'הקלד שם יישוב...';
+      document.getElementById('sharedCitySearch').disabled = false;
+    } catch(e) {
+      document.getElementById('sharedCitySearch').placeholder = 'שגיאה בטעינה';
+    }
+  }
+
+  function getSchoolsForCity(city) {
+    const filtered = allSchools
+      .filter(r => (r.SETL_NAME || '').trim() === city)
+      .map(r => (r.NAME || '').trim())
+      .filter(Boolean);
+    return [...new Set(filtered)].sort((a, b) => a.localeCompare(b, 'he'));
+  }
+
+  // ─── Shared city autocomplete ─────────────────────────────
+  function makeAutocomplete(searchId, hiddenId, listId, onSelect) {
+    const searchEl = document.getElementById(searchId);
+    const hiddenEl = document.getElementById(hiddenId);
+    const listEl   = document.getElementById(listId);
+    let idx = -1;
+
+    function render(items) {
+      listEl.innerHTML = '';
+      idx = -1;
+      if (!items.length) {
+        listEl.innerHTML = '<li class="no-results">לא נמצאו תוצאות</li>';
+        listEl.classList.add('open');
+        return;
+      }
+      items.slice(0, 50).forEach(city => {
+        const li = document.createElement('li');
+        li.textContent = city;
+        li.addEventListener('mousedown', () => select(city));
+        listEl.appendChild(li);
+      });
+      listEl.classList.add('open');
+    }
+
+    function select(city) {
+      searchEl.value = city;
+      hiddenEl.value = city;
+      listEl.classList.remove('open');
+      onSelect(city);
+    }
+
+    searchEl.addEventListener('input', function() {
+      const q = this.value.trim();
+      hiddenEl.value = '';
+      onSelect('');
+      if (!q) { listEl.classList.remove('open'); return; }
+      render(allCities.filter(c => c.includes(q)));
+    });
+
+    searchEl.addEventListener('keydown', function(e) {
+      const items = listEl.querySelectorAll('li:not(.no-results)');
+      if (!items.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); idx = Math.min(idx+1, items.length-1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); idx = Math.max(idx-1, 0); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (idx >= 0) select(items[idx].textContent); return; }
+      else if (e.key === 'Escape') { listEl.classList.remove('open'); return; }
+      items.forEach((li, i) => li.classList.toggle('active', i === idx));
+      if (idx >= 0) items[idx].scrollIntoView({ block: 'nearest' });
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest(`#${listId}`) && !e.target.closest(`#${searchId}`))
+        listEl.classList.remove('open');
+    });
+  }
+
+  function fillSchoolSelect(selectEl, city, selectedValue) {
+    selectEl.innerHTML = '<option value="">— בחר בית ספר —</option>';
+    if (!city) { selectEl.disabled = true; return; }
+    getSchoolsForCity(city).forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      if (s === selectedValue) opt.selected = true;
+      selectEl.appendChild(opt);
+    });
+    selectEl.disabled = false;
+  }
+
+  // Shared panel autocomplete
+  makeAutocomplete('sharedCitySearch', 'sharedCity', 'sharedCityList', city => {
+    fillSchoolSelect(document.getElementById('sharedSchool'), city, '');
+  });
+
+  // ─── Shared manual toggle ────────────────────────────────
+  let sharedManualMode = false;
+  function toggleSharedManual() {
+    sharedManualMode = !sharedManualMode;
+    document.getElementById('sharedManualFields').style.display = sharedManualMode ? 'block' : 'none';
+    document.querySelector('#sharedCitySearch').closest('.field').style.display = sharedManualMode ? 'none' : '';
+    document.getElementById('sharedSchoolWrap').style.display = sharedManualMode ? 'none' : '';
+    document.getElementById('sharedManualBtn').textContent = sharedManualMode
+      ? 'חזרה לבחירה מהרשימה'
+      : 'לא מצאתי את היישוב / בית הספר ברשימה';
+  }
+
+  // ─── Apply shared to all rows ─────────────────────────────
+  function applyShared() {
+    const city   = sharedManualMode
+      ? document.getElementById('sharedManualCity').value.trim()
+      : document.getElementById('sharedCity').value;
+    const school = sharedManualMode
+      ? document.getElementById('sharedManualSchool').value.trim()
+      : document.getElementById('sharedSchool').value;
+    const workshop = document.getElementById('sharedWorkshop').value.trim();
+    const leader   = document.getElementById('sharedLeader').value.trim();
+
+    document.querySelectorAll('#bulkBody tr').forEach(tr => {
+      if (city) {
+        tr.querySelector('.row-city-search').value = city;
+        tr.querySelector('.row-city-hidden').value = city;
+        if (sharedManualMode) {
+          // manual: just put text directly into the school dropdown as a custom option
+          const sel = tr.querySelector('.row-school');
+          sel.innerHTML = `<option value="${school}">${school || '—'}</option>`;
+          sel.value = school;
+        } else {
+          fillSchoolSelect(tr.querySelector('.row-school'), city, school);
+        }
+      }
+      if (workshop) tr.querySelector('.row-workshop').value = workshop;
+      if (leader)   tr.querySelector('.row-leader').value   = leader;
+    });
+  }
+
+  // ─── Table rows ───────────────────────────────────────────
+  function addRow(data = {}) {
+    rowCount++;
+    const rid = rowCount;
+    const tbody = document.getElementById('bulkBody');
+    const tr = document.createElement('tr');
+    tr.dataset.rowId = rid;
+
+    tr.innerHTML = `
+      <td style="text-align:center;color:#9aabb8;font-size:0.8rem;padding-top:0.6rem">${rid}</td>
+      <td><input class="row-firstName" type="text" placeholder="שם פרטי" value="${esc(data.firstName||'')}" /></td>
+      <td><input class="row-lastName"  type="text" placeholder="שם משפחה" value="${esc(data.lastName||'')}" /></td>
+      <td><input class="row-email"     type="email" placeholder="אימייל" value="${esc(data.email||'')}" /></td>
+      <td><input class="row-phone"     type="tel"   placeholder="טלפון" value="${esc(data.phone||'')}" /></td>
+      <td>
+        <div class="row-city-wrap">
+          <input class="row-city-search" type="text" placeholder="יישוב" autocomplete="off" value="${esc(data.city||'')}" />
+          <input class="row-city-hidden" type="hidden" value="${esc(data.city||'')}" />
+          <ul class="autocomplete-list row-city-list"></ul>
+        </div>
+      </td>
+      <td>
+        <select class="row-school" ${data.city ? '' : 'disabled'}>
+          <option value="">—</option>
+        </select>
+      </td>
+      <td><input class="row-workshop" type="text" placeholder="השתלמות" value="${esc(data.workshop||'')}" /></td>
+      <td><input class="row-leader"   type="text" placeholder="מנחה" value="${esc(data.leader||'')}" /></td>
+      <td><button class="btn-del" title="מחק שורה" onclick="this.closest('tr').remove()">✕</button></td>
+    `;
+
+    tbody.appendChild(tr);
+
+    // Wire up row autocomplete
+    const citySearch = tr.querySelector('.row-city-search');
+    const cityHidden = tr.querySelector('.row-city-hidden');
+    const cityList   = tr.querySelector('.row-city-list');
+    const schoolSel  = tr.querySelector('.row-school');
+    let rowIdx = -1;
+
+    if (data.city) fillSchoolSelect(schoolSel, data.city, data.school || '');
+
+    function renderRowList(items) {
+      cityList.innerHTML = '';
+      rowIdx = -1;
+      if (!items.length) { cityList.innerHTML = '<li class="no-results">לא נמצאו</li>'; }
+      else items.slice(0, 50).forEach(c => {
+        const li = document.createElement('li');
+        li.textContent = c;
+        li.addEventListener('mousedown', () => selectRowCity(c));
+        cityList.appendChild(li);
+      });
+      cityList.classList.add('open');
+    }
+
+    function selectRowCity(c) {
+      citySearch.value = c;
+      cityHidden.value = c;
+      cityList.classList.remove('open');
+      fillSchoolSelect(schoolSel, c, '');
+    }
+
+    citySearch.addEventListener('input', function() {
+      const q = this.value.trim();
+      cityHidden.value = '';
+      fillSchoolSelect(schoolSel, '', '');
+      if (!q) { cityList.classList.remove('open'); return; }
+      renderRowList(allCities.filter(c => c.includes(q)));
+    });
+
+    citySearch.addEventListener('keydown', function(e) {
+      const items = cityList.querySelectorAll('li:not(.no-results)');
+      if (!items.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); rowIdx = Math.min(rowIdx+1, items.length-1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); rowIdx = Math.max(rowIdx-1, 0); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (rowIdx >= 0) selectRowCity(items[rowIdx].textContent); return; }
+      else if (e.key === 'Escape') { cityList.classList.remove('open'); return; }
+      items.forEach((li, i) => li.classList.toggle('active', i === rowIdx));
+      if (rowIdx >= 0) items[rowIdx].scrollIntoView({ block: 'nearest' });
+    });
+
+    citySearch.addEventListener('blur', () => setTimeout(() => cityList.classList.remove('open'), 150));
+  }
+
+  function esc(s) { return String(s).replace(/"/g, '&quot;'); }
+
+  // ─── Submit all ───────────────────────────────────────────
+  async function submitAll() {
+    const rows = [...document.querySelectorAll('#bulkBody tr')];
+
+    // Collect non-empty rows
+    const entries = [];
+    let hasError = false;
+
+    rows.forEach(tr => {
+      const firstName = tr.querySelector('.row-firstName').value.trim();
+      const lastName  = tr.querySelector('.row-lastName').value.trim();
+      const email     = tr.querySelector('.row-email').value.trim();
+      const phone     = tr.querySelector('.row-phone').value.trim();
+      const city      = tr.querySelector('.row-city-hidden').value.trim();
+      const school    = tr.querySelector('.row-school').value.trim();
+      const workshop  = tr.querySelector('.row-workshop').value.trim();
+      const leader    = tr.querySelector('.row-leader').value.trim();
+
+      // Skip fully empty rows
+      if (!firstName && !lastName && !email && !phone) return;
+
+      // Validate required fields
+      let rowOk = true;
+      ['.row-firstName', '.row-email', '.row-phone'].forEach(sel => {
+        const el = tr.querySelector(sel);
+        const val = el.value.trim();
+        const needsEmail = sel === '.row-email';
+        const valid = needsEmail ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) : val.length > 0;
+        el.classList.toggle('row-error', !valid);
+        if (!valid) { rowOk = false; hasError = true; }
+      });
+
+      if (rowOk) entries.push({ tr, firstName, lastName, email, phone, city, school, workshop, leader });
+    });
+
+    if (hasError) { alert('יש שדות חסרים או שגויים — תקן לפני השליחה'); return; }
+    if (!entries.length) { alert('אין שורות למשלוח'); return; }
+
+    const btn = document.getElementById('btnSubmitAll');
+    btn.disabled = true;
+    btn.classList.add('sending');
+    btn.querySelector('.submit-text').textContent = 'שולח...';
+
+    const progressWrap = document.getElementById('progressWrap');
+    const progressFill = document.getElementById('progressFill');
+    const progressLabel = document.getElementById('progressLabel');
+    progressWrap.classList.add('show');
+
+    let done = 0, succeeded = 0;
+    const failures = [];
+
+    async function sendOne(entry) {
+      const { tr, firstName, lastName, email, phone, city, school, workshop, leader } = entry;
+      tr.classList.add('row-sending');
+
+      const atFields = {
+        'username':       email,
+        'טלפון':          phone,
+        'שם פרטי':       firstName,
+        'שם משפחה':      lastName,
+        'יישוב בית ספר': city,
+        'בית ספר':       school,
+      };
+      if (workshop) atFields['השתלמות'] = workshop;
+      if (leader)   atFields['מנחה']    = leader;
+
+      try {
+        const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fields: atFields }),
+        });
+
+        if (!atRes.ok) {
+          const b = await atRes.json().catch(() => ({}));
+          throw new Error('Airtable ' + atRes.status + ': ' + (b.error?.message || ''));
+        }
+
+        // Bubble — non-fatal
+        fetch(BUBBLE_URL, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${BUBBLE_TOKEN}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: phone }),
+        }).catch(() => {});
+
+        tr.classList.remove('row-sending');
+        tr.classList.add('row-ok');
+        succeeded++;
+      } catch(err) {
+        tr.classList.remove('row-sending');
+        tr.classList.add('row-fail');
+        failures.push({ name: `${firstName} ${lastName}`, email, error: err.message });
+      }
+
+      done++;
+      const pct = Math.round(done / entries.length * 100);
+      progressFill.style.width = pct + '%';
+      progressLabel.textContent = `${done} / ${entries.length} נשלחו`;
+    }
+
+    // Send in batches of 5 to avoid rate limits
+    const BATCH = 5;
+    for (let i = 0; i < entries.length; i += BATCH) {
+      await Promise.allSettled(entries.slice(i, i + BATCH).map(sendOne));
+    }
+
+    btn.classList.remove('sending');
+    btn.querySelector('.submit-text').textContent = 'רשום את כולם';
+    btn.disabled = false;
+
+    // Show summary
+    const summaryEl = document.getElementById('summary');
+    const summaryBody = document.getElementById('summaryBody');
+    summaryBody.innerHTML = `
+      <div class="summary-row ok">✅ ${succeeded} רשומות נשמרו בהצלחה</div>
+      ${failures.length ? `<div class="summary-row fail">❌ ${failures.length} רשומות נכשלו</div>` : ''}
+      ${failures.map(f => `<div class="summary-row fail" style="padding-right:1rem;font-size:0.82rem">${f.name} (${f.email}): ${f.error}</div>`).join('')}
+    `;
+    summaryEl.classList.add('show');
+    summaryEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ─── Init ─────────────────────────────────────────────────
+  loadSchools().then(() => {
+    for (let i = 0; i < 10; i++) addRow();
+  });
+
+  // ─── Excel paste ──────────────────────────────────────────
+  const FIELD_OPTIONS = [
+    { value: '',             label: '— דלג —' },
+    { value: 'firstName',   label: 'שם פרטי' },
+    { value: 'lastName',    label: 'שם משפחה' },
+    { value: 'email',       label: 'אימייל' },
+    { value: 'phone',       label: 'טלפון' },
+    { value: 'city',        label: 'יישוב' },
+    { value: 'school',      label: 'בית ספר' },
+    { value: 'workshop',    label: 'השתלמות' },
+    { value: 'leader',      label: 'מנחה' },
+  ];
+
+  // Auto-detect field from header text
+  const HEADER_HINTS = {
+    'שם פרטי': 'firstName', 'first': 'firstName', 'firstname': 'firstName',
+    'שם משפחה': 'lastName', 'last': 'lastName', 'lastname': 'lastName',
+    'אימייל': 'email', 'מייל': 'email', 'email': 'email',
+    'טלפון': 'phone', 'נייד': 'phone', 'phone': 'phone', 'tel': 'phone',
+    'יישוב': 'city', 'עיר': 'city', 'city': 'city', 'settlement': 'city',
+    'בית ספר': 'school', 'school': 'school', 'מוסד': 'school',
+    'השתלמות': 'workshop', 'workshop': 'workshop',
+    'מנחה': 'leader', 'leader': 'leader',
+  };
+
+  let pastedRows = [];
+  let pastedHeaders = [];
+
+  document.addEventListener('paste', function(e) {
+    // Only if no input/textarea is focused
+    const active = document.activeElement;
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) return;
+
+    const text = e.clipboardData.getData('text/plain');
+    if (!text.trim()) return;
+
+    e.preventDefault();
+    parsePaste(text);
+  });
+
+  // Also allow paste anywhere on table
+  document.getElementById('bulkTable').addEventListener('paste', function(e) {
+    const text = e.clipboardData.getData('text/plain');
+    if (!text.trim()) return;
+    e.preventDefault();
+    parsePaste(text);
+  });
+
+  function parsePaste(text) {
+    const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
+    if (!lines.length) return;
+
+    const allRows = lines.map(l => l.split('\t'));
+    const firstRow = allRows[0];
+
+    // Detect if first row is a header (contains no @ and no pure numbers)
+    const looksLikeHeader = firstRow.every(cell => !cell.includes('@') && !/^\d{9,}$/.test(cell.trim()));
+
+    if (looksLikeHeader) {
+      pastedHeaders = firstRow.map(c => c.trim());
+      pastedRows = allRows.slice(1);
+    } else {
+      pastedHeaders = firstRow.map((_, i) => `עמודה ${i + 1}`);
+      pastedRows = allRows;
+    }
+
+    if (!pastedRows.length) return;
+    openMapModal();
+  }
+
+  function openMapModal() {
+    // Preview: first 2 data rows
+    const previewLines = pastedRows.slice(0, 2).map(r => r.join(' | ')).join('\n');
+    document.getElementById('mapPreview').textContent =
+      `${pastedRows.length} שורות • תצוגה מקדימה:\n${previewLines}`;
+
+    // Build mapping grid
+    const grid = document.getElementById('mapGrid');
+    grid.innerHTML = '';
+    pastedHeaders.forEach((header, colIdx) => {
+      const autoMatch = HEADER_HINTS[header.toLowerCase()] || HEADER_HINTS[header] || '';
+
+      const label = document.createElement('div');
+      label.className = 'col-label';
+      label.textContent = header;
+
+      const arrow = document.createElement('div');
+      arrow.className = 'arrow';
+      arrow.textContent = '←';
+
+      const sel = document.createElement('select');
+      sel.dataset.colIdx = colIdx;
+      sel.id = `map-col-${colIdx}`;
+      FIELD_OPTIONS.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt.value;
+        o.textContent = opt.label;
+        if (opt.value === autoMatch) o.selected = true;
+        sel.appendChild(o);
+      });
+
+      grid.appendChild(label);
+      grid.appendChild(arrow);
+      grid.appendChild(sel);
+    });
+
+    document.getElementById('mapModal').classList.add('open');
+  }
+
+  function closeMapModal() {
+    document.getElementById('mapModal').classList.remove('open');
+    pastedRows = [];
+    pastedHeaders = [];
+  }
+
+  async function applyPasteMapping() {
+    // Build column → field map
+    const mapping = {};
+    pastedHeaders.forEach((_, colIdx) => {
+      const sel = document.getElementById(`map-col-${colIdx}`);
+      if (sel && sel.value) mapping[colIdx] = sel.value;
+    });
+
+    // Capture before closing (closeMapModal clears these)
+    const rowsToImport = pastedRows.slice();
+
+    closeMapModal();
+
+    // Clear existing empty rows, keep rows that have data
+    document.querySelectorAll('#bulkBody tr').forEach(tr => {
+      const hasData = ['row-firstName','row-email','row-phone'].some(
+        cls => tr.querySelector('.' + cls)?.value.trim()
+      );
+      if (!hasData) tr.remove();
+    });
+
+    // Add rows from paste
+    for (const cols of rowsToImport) {
+      const data = {};
+      Object.entries(mapping).forEach(([colIdx, field]) => {
+        data[field] = (cols[colIdx] || '').trim();
+      });
+      if (!data.firstName && !data.email) continue; // skip empty
+      addRow(data);
+    }
+
+    // Wait for allSchools then resolve city→school for each row
+    let tries = 0;
+    while (allSchools.length === 0 && tries < 20) {
+      await new Promise(r => setTimeout(r, 300));
+      tries++;
+    }
+
+    document.querySelectorAll('#bulkBody tr').forEach(tr => {
+      const cityVal = tr.querySelector('.row-city-hidden').value;
+      if (cityVal) {
+        tr.querySelector('.row-city-search').value = cityVal;
+        const sel = tr.querySelector('.row-school');
+        fillSchoolSelect(sel, cityVal, tr.querySelector('.row-school').dataset.pendingSchool || '');
+      }
+    });
+  }
+</script>
+</body>
+</html>

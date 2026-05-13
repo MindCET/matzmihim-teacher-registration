@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>מצמיחים — תיעוד המערכת</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:   #1a3c6b;
+      --blue2:  #2563b0;
+      --green:  #27ae60;
+      --orange: #e67e22;
+      --red:    #e74c3c;
+      --gray:   #6b7c8d;
+      --bg:     #f0f4f8;
+      --card:   #ffffff;
+    }
+
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: var(--bg);
+      color: #1a2a3a;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: var(--blue);
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .topbar-title { font-size: 1.2rem; font-weight: 700; }
+    .topbar-sub   { font-size: 0.82rem; opacity: 0.7; margin-top: 0.1rem; }
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      opacity: 0.9;
+    }
+    .live-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #4caf50;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    /* ── Layout ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: calc(100vh - 60px);
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: #fff;
+      border-left: 1px solid #e0e7ef;
+      padding: 1.5rem 0;
+      position: sticky;
+      top: 0;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      padding: 0 1rem 1rem;
+      border-bottom: 1px solid #f0f4f8;
+      margin-bottom: 1rem;
+    }
+    .sidebar-section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.6rem;
+      padding: 0 0.5rem;
+    }
+
+    .nav-link {
+      display: block;
+      padding: 0.45rem 0.8rem;
+      border-radius: 7px;
+      font-size: 0.88rem;
+      color: #3a4f63;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-link:hover, .nav-link.active { background: #eef3fb; color: var(--blue); font-weight: 500; }
+
+    /* Stats in sidebar */
+    .stat-mini {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+    }
+    .stat-mini-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--blue);
+    }
+    .stat-mini-label { color: var(--gray); font-size: 0.8rem; }
+
+    /* ── Main content ── */
+    .main { padding: 2rem; overflow-y: auto; }
+
+    /* ── Section headers ── */
+    .section { margin-bottom: 2.5rem; }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--blue);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e0e7ef;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* ── Cards ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 1.2rem 1.4rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .stat-card-val  { font-size: 2rem; font-weight: 900; color: var(--blue); line-height: 1; }
+    .stat-card-label { font-size: 0.85rem; color: var(--gray); }
+    .stat-card.green .stat-card-val { color: var(--green); }
+    .stat-card.orange .stat-card-val { color: var(--orange); }
+
+    /* ── Flow diagram ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      background: var(--card);
+      border-radius: 10px;
+      padding: 1.4rem 1.6rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      margin-bottom: 1rem;
+    }
+
+    .flow-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 110px;
+    }
+
+    .flow-icon {
+      width: 52px; height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: #eef3fb;
+    }
+    .flow-icon.blue   { background: #dbeafe; }
+    .flow-icon.green  { background: #dcfce7; }
+    .flow-icon.purple { background: #ede9fe; }
+    .flow-icon.orange { background: #fef3c7; }
+
+    .flow-label  { font-size: 0.78rem; font-weight: 500; color: #3a4f63; text-align: center; }
+    .flow-sublabel { font-size: 0.7rem; color: var(--gray); text-align: center; }
+
+    .flow-arrow {
+      font-size: 1.3rem;
+      color: #c0cfd8;
+      padding: 0 0.3rem;
+      flex-shrink: 0;
+    }
+
+    /* ── Field tables ── */
+    .field-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      margin-bottom: 1rem;
+      font-size: 0.88rem;
+    }
+    .field-table th {
+      background: var(--blue);
+      color: #fff;
+      padding: 0.65rem 1rem;
+      text-align: right;
+      font-weight: 500;
+    }
+    .field-table td {
+      padding: 0.55rem 1rem;
+      border-bottom: 1px solid #f0f4f8;
+      color: #3a4f63;
+    }
+    .field-table tr:last-child td { border-bottom: none; }
+    .field-table tr:hover td { background: #f8fafc; }
+
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .tag.req  { background: #fdecea; color: #c0392b; }
+    .tag.opt  { background: #e8f5e9; color: #27ae60; }
+    .tag.auto { background: #e8eef8; color: var(--blue); }
+
+    /* ── Recent registrations ── */
+    .recent-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      font-size: 0.85rem;
+    }
+    .recent-table th {
+      background: #f8fafc;
+      color: var(--gray);
+      padding: 0.6rem 1rem;
+      text-align: right;
+      font-weight: 500;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .recent-table td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid #f0f4f8;
+      color: #3a4f63;
+    }
+    .recent-table tr:last-child td { border-bottom: none; }
+    .recent-table tr:hover td { background: #f8fafc; }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-left: 0.4rem;
+    }
+    .status-dot.ok   { background: var(--green); }
+    .status-dot.fail { background: var(--red); }
+
+    /* ── Last updated ── */
+    .last-updated {
+      font-size: 0.78rem;
+      color: var(--gray);
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* ── Links panel ── */
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.8rem;
+    }
+
+    .link-card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 1.1rem 1.3rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .link-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); transform: translateY(-2px); }
+    .link-card-icon { font-size: 1.6rem; }
+    .link-card-title { font-size: 0.9rem; font-weight: 600; color: var(--blue); }
+    .link-card-sub   { font-size: 0.78rem; color: var(--gray); margin-top: 0.15rem; }
+
+    /* ── Loading skeleton ── */
+    .skel {
+      background: linear-gradient(90deg, #e8eef5 25%, #f4f7fa 50%, #e8eef5 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    @media (max-width: 700px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div>
+    <div class="topbar-title">🌱 מצמיחים — תיעוד המערכת</div>
+    <div class="topbar-sub">מסמך טכני אינטראקטיבי · מתעדכן אוטומטית</div>
+  </div>
+  <div class="live-badge">
+    <span class="live-dot"></span>
+    <span id="liveStatus">מתחבר...</span>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">ניווט</div>
+      <a class="nav-link active" onclick="scrollTo('sec-overview')">סקירה כללית</a>
+      <a class="nav-link" onclick="scrollTo('sec-flow')">זרימת ההרשמה</a>
+      <a class="nav-link" onclick="scrollTo('sec-pages')">דפי האפליקציה</a>
+      <a class="nav-link" onclick="scrollTo('sec-fields')">שדות ומבנה נתונים</a>
+      <a class="nav-link" onclick="scrollTo('sec-integrations')">אינטגרציות</a>
+      <a class="nav-link" onclick="scrollTo('sec-live')">רשומות אחרונות</a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">סטטיסטיקות חיות</div>
+      <div class="stat-mini">
+        <span class="stat-mini-label">סה״כ רשומות</span>
+        <span class="stat-mini-val" id="sb-total"><span class="skel" style="width:30px;height:16px"></span></span>
+      </div>
+      <div class="stat-mini">
+        <span class="stat-mini-label">עם השתלמות</span>
+        <span class="stat-mini-val" id="sb-workshop"><span class="skel" style="width:24px;height:16px"></span></span>
+      </div>
+      <div class="stat-mini">
+        <span class="stat-mini-label">עדכון אחרון</span>
+        <span class="stat-mini-val" id="sb-updated" style="font-size:0.78rem">—</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section" style="border:none">
+      <div class="sidebar-section-title">קישורים מהירים</div>
+      <a class="nav-link" href="index.html" target="_blank">📋 טופס הרשמה בודדת</a>
+      <a class="nav-link" href="bulk.html" target="_blank">📊 הרשמה מרובה</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Overview -->
+    <div class="section" id="sec-overview">
+      <div class="section-title">📊 סקירה כללית</div>
+      <div class="card-grid">
+        <div class="stat-card">
+          <div class="stat-card-val" id="stat-total"><span class="skel" style="width:40px;height:32px"></span></div>
+          <div class="stat-card-label">סה״כ מורים רשומים</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-card-val" id="stat-workshop"><span class="skel" style="width:40px;height:32px"></span></div>
+          <div class="stat-card-label">נרשמו במסגרת השתלמות</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-card-val" id="stat-cities"><span class="skel" style="width:40px;height:32px"></span></div>
+          <div class="stat-card-label">יישובים שונים</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-val" id="stat-today"><span class="skel" style="width:40px;height:32px"></span></div>
+          <div class="stat-card-label">נרשמו היום</div>
+        </div>
+      </div>
+      <div class="last-updated">
+        <span>⏱</span>
+        <span id="lastUpdated">טוען...</span>
+        <span>· מתרענן כל 30 שניות</span>
+      </div>
+    </div>
+
+    <!-- Flow -->
+    <div class="section" id="sec-flow">
+      <div class="section-title">🔄 זרימת ההרשמה</div>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-icon blue">👤</div>
+          <div class="flow-label">מורה ממלא טופס</div>
+          <div class="flow-sublabel">index.html</div>
+        </div>
+        <div class="flow-arrow">←</div>
+        <div class="flow-step">
+          <div class="flow-icon">✅</div>
+          <div class="flow-label">ולידציה</div>
+          <div class="flow-sublabel">בדפדפן</div>
+        </div>
+        <div class="flow-arrow">←</div>
+        <div class="flow-step">
+          <div class="flow-icon green">🗄</div>
+          <div class="flow-label">שמירה Airtable</div>
+          <div class="flow-sublabel">טבלת Teachers</div>
+        </div>
+        <div class="flow-arrow">←</div>
+        <div class="flow-step">
+          <div class="flow-icon purple">🫧</div>
+          <div class="flow-label">יצירת משתמש</div>
+          <div class="flow-sublabel">Bubble</div>
+        </div>
+        <div class="flow-arrow">←</div>
+        <div class="flow-step">
+          <div class="flow-icon orange">📧</div>
+          <div class="flow-label">מייל אישור</div>
+          <div class="flow-sublabel">EmailJS</div>
+        </div>
+      </div>
+
+      <div class="flow" style="margin-top:0.8rem">
+        <div class="flow-step">
+          <div class="flow-icon blue">👥</div>
+          <div class="flow-label">מנחה מייבא Excel</div>
+          <div class="flow-sublabel">bulk.html</div>
+        </div>
+        <div class="flow-arrow">←</div>
+        <div class="flow-step">
+          <div class="flow-icon">🗂</div>
+          <div class="flow-label">מיפוי עמודות</div>
+          <div class="flow-sublabel">חלון מיפוי</div>
+        </div>
+        <div class="flow-arrow">←</div>
+        <div class="flow-step">
+          <div class="flow-icon">⚙️</div>
+          <div class="flow-label">שליחה מקבילית</div>
+          <div class="flow-sublabel">batches של 5</div>
+        </div>
+        <div class="flow-arrow">←</div>
+        <div class="flow-step">
+          <div class="flow-icon green">🗄</div>
+          <div class="flow-label">Airtable + Bubble</div>
+          <div class="flow-sublabel">לכל שורה</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pages -->
+    <div class="section" id="sec-pages">
+      <div class="section-title">📄 דפי האפליקציה</div>
+      <div class="links-grid">
+        <a class="link-card" href="index.html" target="_blank">
+          <div class="link-card-icon">📋</div>
+          <div>
+            <div class="link-card-title">index.html</div>
+            <div class="link-card-sub">טופס הרשמה בודדת למורה</div>
+          </div>
+        </a>
+        <a class="link-card" href="bulk.html" target="_blank">
+          <div class="link-card-icon">📊</div>
+          <div>
+            <div class="link-card-title">bulk.html</div>
+            <div class="link-card-sub">הרשמה מרובה + ייבוא Excel</div>
+          </div>
+        </a>
+        <a class="link-card" href="plan.html" target="_blank">
+          <div class="link-card-icon">🗺</div>
+          <div>
+            <div class="link-card-title">plan.html</div>
+            <div class="link-card-sub">תיעוד המערכת (דף זה)</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Fields -->
+    <div class="section" id="sec-fields">
+      <div class="section-title">🗃 שדות ומבנה נתונים</div>
+      <p style="font-size:0.88rem;color:var(--gray);margin-bottom:0.8rem">טבלת <strong>Teachers</strong> ב-Airtable</p>
+      <table class="field-table">
+        <thead>
+          <tr>
+            <th>שם שדה ב-Airtable</th>
+            <th>מקור בטופס</th>
+            <th>סוג</th>
+            <th>דרישה</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>username</td><td>שדה אימייל</td><td>Text</td><td><span class="tag req">חובה</span></td></tr>
+          <tr><td>טלפון</td><td>שדה טלפון</td><td>Phone</td><td><span class="tag req">חובה</span></td></tr>
+          <tr><td>שם פרטי</td><td>שדה שם פרטי</td><td>Text</td><td><span class="tag req">חובה</span></td></tr>
+          <tr><td>שם משפחה</td><td>שדה שם משפחה</td><td>Text</td><td><span class="tag req">חובה</span></td></tr>
+          <tr><td>יישוב בית ספר</td><td>Autocomplete מ-API ממשלתי</td><td>Text</td><td><span class="tag req">חובה</span></td></tr>
+          <tr><td>בית ספר</td><td>Dropdown מסונן לפי יישוב</td><td>Text</td><td><span class="tag req">חובה</span></td></tr>
+          <tr><td>השתלמות</td><td>שדה שם השתלמות (כשצ׳קבוקס מסומן)</td><td>Text</td><td><span class="tag opt">אופציונלי</span></td></tr>
+          <tr><td>מנחה</td><td>שדה שם מנחה (כשצ׳קבוקס מסומן)</td><td>Text</td><td><span class="tag opt">אופציונלי</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Integrations -->
+    <div class="section" id="sec-integrations">
+      <div class="section-title">🔌 אינטגרציות</div>
+      <table class="field-table">
+        <thead>
+          <tr><th>שירות</th><th>תפקיד</th><th>Endpoint / API</th><th>סטטוס</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>🗄 Airtable</td>
+            <td>שמירת רשומות מורים</td>
+            <td style="font-size:0.78rem;direction:ltr">api.airtable.com/v0/appTzbYeDnjYv6ubt/Teachers</td>
+            <td><span id="at-status"><span class="skel" style="width:50px;height:14px"></span></span></td>
+          </tr>
+          <tr>
+            <td>🫧 Bubble</td>
+            <td>יצירת משתמש באפליקציה</td>
+            <td style="font-size:0.78rem;direction:ltr">matzmihim-teachers.bubbleapps.io/…/obj/user</td>
+            <td><span class="tag opt">לא קריטי</span></td>
+          </tr>
+          <tr>
+            <td>📧 EmailJS</td>
+            <td>מייל אישור הרשמה</td>
+            <td style="font-size:0.78rem">מוגדר ב-index.html</td>
+            <td><span class="tag opt">ממתין להגדרה</span></td>
+          </tr>
+          <tr>
+            <td>🏛 ממשל שקוף</td>
+            <td>מאגר יישובים ובתי ספר</td>
+            <td style="font-size:0.78rem;direction:ltr">data.gov.il · resource 99b92311</td>
+            <td><span class="tag auto">אוטומטי</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Live records -->
+    <div class="section" id="sec-live">
+      <div class="section-title">📡 רשומות אחרונות <span style="font-size:0.75rem;font-weight:400;color:var(--gray)">· 10 אחרונות מ-Airtable</span></div>
+      <div id="recentWrap">
+        <table class="recent-table" id="recentTable">
+          <thead>
+            <tr>
+              <th>שם</th>
+              <th>אימייל</th>
+              <th>יישוב</th>
+              <th>בית ספר</th>
+              <th>השתלמות</th>
+            </tr>
+          </thead>
+          <tbody id="recentBody">
+            <tr><td colspan="5" style="text-align:center;color:var(--gray);padding:1.5rem">טוען...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script>
+  function scrollTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  async function fetchStats() {
+    try {
+      // Fetch all records (up to 100 for stats)
+      const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}?pageSize=100`;
+      const res  = await fetch(url, { headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` } });
+
+      if (!res.ok) throw new Error(res.status);
+
+      const data = await res.json();
+      const records = data.records || [];
+
+      // Stats
+      const total    = records.length;
+      const workshop = records.filter(r => r.fields['השתלמות']).length;
+      const cities   = new Set(records.map(r => r.fields['יישוב בית ספר']).filter(Boolean)).size;
+      const today    = records.filter(r => {
+        const d = new Date(r.createdTime);
+        const now = new Date();
+        return d.toDateString() === now.toDateString();
+      }).length;
+
+      // Update stats
+      document.getElementById('stat-total').textContent    = total;
+      document.getElementById('stat-workshop').textContent = workshop;
+      document.getElementById('stat-cities').textContent   = cities;
+      document.getElementById('stat-today').textContent    = today;
+      document.getElementById('sb-total').textContent      = total;
+      document.getElementById('sb-workshop').textContent   = workshop;
+
+      // Airtable status
+      document.getElementById('at-status').innerHTML = '<span class="tag" style="background:#dcfce7;color:#27ae60">מחובר ✓</span>';
+
+      // Recent records (last 10)
+      const recent = records.slice(0, 10);
+      const tbody  = document.getElementById('recentBody');
+      if (!recent.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray);padding:1.5rem">אין רשומות עדיין</td></tr>';
+      } else {
+        tbody.innerHTML = recent.map(r => {
+          const f = r.fields;
+          const name = [f['שם פרטי'], f['שם משפחה']].filter(Boolean).join(' ');
+          return `<tr>
+            <td>${esc(name)}</td>
+            <td>${esc(f['username'] || '')}</td>
+            <td>${esc(f['יישוב בית ספר'] || '—')}</td>
+            <td>${esc(f['בית ספר'] || '—')}</td>
+            <td>${f['השתלמות'] ? `<span class="tag opt">${esc(f['השתלמות'])}</span>` : '—'}</td>
+          </tr>`;
+        }).join('');
+      }
+
+      // Timestamps
+      const now = new Date().toLocaleTimeString('he-IL');
+      document.getElementById('lastUpdated').textContent  = `עודכן ב-${now}`;
+      document.getElementById('sb-updated').textContent   = now;
+      document.getElementById('liveStatus').textContent   = `מחובר · ${now}`;
+
+    } catch(e) {
+      document.getElementById('liveStatus').textContent = 'שגיאת חיבור';
+      document.getElementById('at-status').innerHTML = '<span class="tag req">שגיאה</span>';
+      console.error('Stats error:', e);
+    }
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Initial load + auto-refresh every 30s
+  fetchStats();
+  setInterval(fetchStats, 30000);
+</script>
+</body>
+</html>
