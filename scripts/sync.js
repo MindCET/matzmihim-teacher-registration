@@ -148,7 +148,7 @@ function diffFields(atRecord, bubbleUser) {
     'last name':  (f['שם משפחה'] || '').trim(),
     phone:        (f['טלפון']    || '').trim(),
     school:       (f['בית ספר']  || '').trim(),
-    email:        (f['username'] || '').toLowerCase().trim(),
+    // email is a protected field in Bubble — cannot be updated via Data API
   };
 
   const changed = {};
@@ -213,8 +213,14 @@ async function main() {
         }
       }
     } catch (err) {
-      console.error(`  ❌ Error (${email}): ${err.message}`);
-      errors++;
+      // USED_EMAIL means a duplicate Airtable entry — skip gracefully
+      if (err.message.includes('USED_EMAIL')) {
+        console.warn(`  ⚠ Skipped duplicate email in Airtable: ${email}`);
+        unchanged++;
+      } else {
+        console.error(`  ❌ Error (${email}): ${err.message}`);
+        errors++;
+      }
     }
   }
 
