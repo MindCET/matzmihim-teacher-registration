@@ -1,0 +1,49 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate config.js from secrets
+        run: |
+          cat > config.js <<EOF
+          const AIRTABLE_TOKEN = '${{ secrets.AIRTABLE_TOKEN }}';
+          const AIRTABLE_BASE  = '${{ secrets.AIRTABLE_BASE }}';
+          const AIRTABLE_TABLE = 'Teachers';
+          const BUBBLE_URL     = '${{ secrets.BUBBLE_URL }}';
+          const BUBBLE_TOKEN   = '${{ secrets.BUBBLE_TOKEN }}';
+          const GOV_API        = 'https://data.gov.il/api/3/action/datastore_search?resource_id=99b92311-9675-4351-85cd-9ed5ee69a787&limit=32000';
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
