@@ -603,7 +603,7 @@
 
       // Stats
       const total    = records.length;
-      const workshop = records.filter(r => r.fields['השתלמות']).length;
+      const workshop = records.filter(r => r.fields['שם השתלמות']).length;
       const cities   = new Set(records.map(r => r.fields['יישוב בית ספר']).filter(Boolean)).size;
       const today    = records.filter(r => {
         const d = new Date(r.createdTime);
@@ -636,7 +636,7 @@
             <td>${esc(f['username'] || '')}</td>
             <td>${esc(f['יישוב בית ספר'] || '—')}</td>
             <td>${esc(f['בית ספר'] || '—')}</td>
-            <td>${f['השתלמות'] ? `<span class="tag opt">${esc(f['השתלמות'])}</span>` : '—'}</td>
+            <td>${f['שם השתלמות'] ? `<span class="tag opt">${esc(f['שם השתלמות'])}</span>` : '—'}</td>
           </tr>`;
         }).join('');
       }

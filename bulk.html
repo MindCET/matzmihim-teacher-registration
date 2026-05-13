@@ -811,8 +811,8 @@
         'יישוב בית ספר': city,
         'בית ספר':       school,
       };
-      if (workshop) atFields['השתלמות'] = workshop;
-      if (leader)   atFields['מנחה']    = leader;
+      if (workshop) atFields['שם השתלמות']        = workshop;
+      if (leader)   atFields['שם מנחה השתלמות'] = leader;
 
       try {
         const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}`, {

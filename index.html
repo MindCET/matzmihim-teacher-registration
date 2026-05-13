@@ -644,8 +644,8 @@
         'בית ספר':          school,
       };
       if (inWorkshop) {
-        atFields['השתלמות'] = workshopName;
-        atFields['מנחה']    = workshopLeader;
+        atFields['שם השתלמות']        = workshopName;
+        atFields['שם מנחה השתלמות'] = workshopLeader;
       }
 
       const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}`, {
