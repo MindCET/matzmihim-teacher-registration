@@ -472,6 +472,7 @@
             <th>טלפון *</th>
             <th>יישוב</th>
             <th>בית ספר</th>
+            <th>כיתה</th>
             <th>השתלמות</th>
             <th>מנחה</th>
             <th></th>
@@ -691,6 +692,24 @@
           <option value="">—</option>
         </select>
       </td>
+      <td>
+        <select class="row-grade">
+          <option value="">—</option>
+          <option ${data.grade==='א׳'?'selected':''}>א׳</option>
+          <option ${data.grade==='ב׳'?'selected':''}>ב׳</option>
+          <option ${data.grade==='ג׳'?'selected':''}>ג׳</option>
+          <option ${data.grade==='ד׳'?'selected':''}>ד׳</option>
+          <option ${data.grade==='ה׳'?'selected':''}>ה׳</option>
+          <option ${data.grade==='ו׳'?'selected':''}>ו׳</option>
+          <option ${data.grade==='ז׳'?'selected':''}>ז׳</option>
+          <option ${data.grade==='ח׳'?'selected':''}>ח׳</option>
+          <option ${data.grade==='ט׳'?'selected':''}>ט׳</option>
+          <option ${data.grade==='י׳'?'selected':''}>י׳</option>
+          <option ${data.grade==='י״א'?'selected':''}>י״א</option>
+          <option ${data.grade==='י״ב'?'selected':''}>י״ב</option>
+          <option value="אחר" ${data.grade==='אחר'?'selected':''}>אחר</option>
+        </select>
+      </td>
       <td><input class="row-workshop" type="text" placeholder="השתלמות" value="${esc(data.workshop||'')}" /></td>
       <td><input class="row-leader"   type="text" placeholder="מנחה" value="${esc(data.leader||'')}" /></td>
       <td><button class="btn-del" title="מחק שורה" onclick="this.closest('tr').remove()">✕</button></td>
@@ -766,6 +785,7 @@
       const phone     = tr.querySelector('.row-phone').value.trim();
       const city      = tr.querySelector('.row-city-hidden').value.trim();
       const school    = tr.querySelector('.row-school').value.trim();
+      const grade     = tr.querySelector('.row-grade').value.trim();
       const workshop  = tr.querySelector('.row-workshop').value.trim();
       const leader    = tr.querySelector('.row-leader').value.trim();
 
@@ -783,7 +803,7 @@
         if (!valid) { rowOk = false; hasError = true; }
       });
 
-      if (rowOk) entries.push({ tr, firstName, lastName, email, phone, city, school, workshop, leader });
+      if (rowOk) entries.push({ tr, firstName, lastName, email, phone, city, school, grade, workshop, leader });
     });
 
     if (hasError) { alert('יש שדות חסרים או שגויים — תקן לפני השליחה'); return; }
@@ -803,7 +823,7 @@
     const failures = [];
 
     async function sendOne(entry) {
-      const { tr, firstName, lastName, email, phone, city, school, workshop, leader } = entry;
+      const { tr, firstName, lastName, email, phone, city, school, grade, workshop, leader } = entry;
       tr.classList.add('row-sending');
 
       const atFields = {
@@ -814,8 +834,9 @@
         'יישוב בית ספר': city,
         'בית ספר':       school,
       };
-      if (workshop) atFields['שם השתלמות']        = workshop;
-      if (leader)   atFields['שם מנחה השתלמות'] = leader;
+      if (grade)    atFields['grade']                  = grade;
+      if (workshop) atFields['שם השתלמות']             = workshop;
+      if (leader)   atFields['שם מנחה השתלמות']      = leader;
 
       try {
         const atRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${encodeURIComponent(AIRTABLE_TABLE)}`, {
@@ -833,7 +854,7 @@
         fetch(BUBBLE_URL, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${BUBBLE_TOKEN}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password: phone }),
+          body: JSON.stringify({ email, password: phone, classroom: grade }),
         }).catch(() => {});
 
         tr.classList.remove('row-sending');
