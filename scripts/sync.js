@@ -81,13 +81,10 @@ async function fetchAllBubble() {
     const data = await res.json();
     const users = data.response?.results || [];
 
-    if (cursor === 0) {
-      console.log(`Bubble raw sample: ${JSON.stringify(users[0] || {}).slice(0, 300)}`);
-    }
-
     for (const u of users) {
+      const email = (u.email || u.authentication?.email?.email || '').toLowerCase().trim();
       if (u.airtable_record_id) byAirtableId.set(u.airtable_record_id, u);
-      if (u.email)               byEmail.set(u.email.toLowerCase().trim(), u);
+      if (email)                byEmail.set(email, u);
     }
 
     const remaining = data.response?.remaining ?? 0;
