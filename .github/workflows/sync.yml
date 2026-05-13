@@ -1,0 +1,27 @@
+name: Sync Airtable → Bubble
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # כל שעה בדיוק
+  workflow_dispatch:        # הרצה ידנית מ-GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run sync
+        run: node scripts/sync.js
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE:  ${{ secrets.AIRTABLE_BASE }}
+          BUBBLE_URL:     ${{ secrets.BUBBLE_URL }}
+          BUBBLE_TOKEN:   ${{ secrets.BUBBLE_TOKEN }}
